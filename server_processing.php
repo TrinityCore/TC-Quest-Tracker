@@ -12,7 +12,10 @@ $primaryKey = 't1.id';
 
 $columns = array(
     array( 'db' => 't1.id as id', 'name' => 'id', 'where' => 't1.id', 'dt' => 0 ),
-    array( 'db' => 't2.LogTitle as title', 'name' => 'title', 'where' => 't2.LogTitle',  'dt' => 1 ),
+    array( 'db' => 't2.LogTitle as title', 'name' => 'title', 'where' => 't2.LogTitle',  'dt' => 1,
+		'formatter' => function( $data, $row ) {
+            return '<a href="' . quest_url . $row['id'] . '" target="_blank">' . $row['title'] . '</a>';
+        } ),
     array( 'db' => 'COUNT(t1.quest_abandon_time) AS abandoned_times', 'name' => 'abandoned_times', 'where' => '',   'dt' => 2 ),
     array( 'db' => 'COUNT(t1.quest_complete_time) AS completed_times', 'name' => 'completed_times', 'where' => '',     'dt' => 3 ),
     array( 'db' => 'MAX(t1.quest_abandon_time) AS last_abandoned', 'name' => 'last_abandoned', 'where' => 't1.quest_abandon_time',     'dt' => 4 ),
