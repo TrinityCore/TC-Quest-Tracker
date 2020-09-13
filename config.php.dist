@@ -9,3 +9,5 @@ $mysql_characters = 'characters';
 
 # Quest URL
 define('quest_url', 'https://wotlkdb.com/?quest=');
+# Query cache time (Secs)
+define('cache_time', 3600); // 1 hour

@@ -22,6 +22,9 @@ if ( is_file( $file ) ) {
 	include( $file );
 }
 
+require('./vendor/autoload.php');
+use Phpfastcache\Helper\Psr16Adapter;
+
 
 class SSP {
 	/**
@@ -248,6 +251,9 @@ class SSP {
 	 */
 	static function simple ( $request, $conn, $table, $primaryKey, $columns, $group_by)
 	{
+		$defaultDriver = 'Files';
+		$Psr16Adapter = new Psr16Adapter($defaultDriver);
+
 		$bindings = array();
 		$db = self::db( $conn );
 
@@ -256,31 +262,56 @@ class SSP {
 		$order = self::order( $request, $columns );
 		$where = self::filter( $request, $columns, $bindings );
 
-		// Main query to actually get the data
-		$data = self::sql_exec( $db, $bindings,
-			"SELECT ".implode(", ", self::pluck($columns, 'db'))."
+		$query = "SELECT ".implode(", ", self::pluck($columns, 'db'))."
 			 FROM $table
 			 $where
 			 $group_by
 			 $order
-			 $limit"
-		);
-
+			 $limit";
+			 
+		$query_md5 = md5($query);
+		
+		if(!$Psr16Adapter->has($query_md5)){
+			$data = self::sql_exec($db, $bindings, $query);
+			$Psr16Adapter->set($query_md5, $data, cache_time);// 1 hour
+		}else{
+			// Getter action
+			$data = $Psr16Adapter->get($query_md5);
+		}
+		
 		// Data set length after filtering
-		$resFilterLength = self::sql_exec( $db, $bindings,
-			"SELECT COUNT({$primaryKey})
+		$query = "SELECT COUNT({$primaryKey})
 			 FROM   $table
 			 $where
-			 $group_by"
-		);
+			 $group_by";
+			 
+		$query_md5 = md5($query);
+		
+		if(!$Psr16Adapter->has($query_md5)){
+			$resFilterLength = self::sql_exec($db, $bindings, $query);
+			$Psr16Adapter->set($query_md5, $resFilterLength, cache_time);// 1 hour
+		}else{
+			// Getter action
+			$resFilterLength = $Psr16Adapter->get($query_md5);
+		}
+		
 		$recordsFiltered = $resFilterLength[0][0];
 
 		// Total data set length
-		$resTotalLength = self::sql_exec( $db,
-			"SELECT COUNT({$primaryKey})
+		$query = "SELECT COUNT({$primaryKey})
 			 FROM   $table
-			 $group_by"
-		);
+			 $group_by";
+			 
+		$query_md5 = md5($query);
+		
+		if(!$Psr16Adapter->has($query_md5)){
+			$resTotalLength = self::sql_exec($db, $bindings, $query);
+			$Psr16Adapter->set($query_md5, $resTotalLength, cache_time);// 1 hour
+		}else{
+			// Getter action
+			$resTotalLength = $Psr16Adapter->get($query_md5);
+		}
+
 		$recordsTotal = $resTotalLength[0][0];
 
 		/*
