@@ -255,12 +255,18 @@ class SSP {
 		$Psr16Adapter = new Psr16Adapter($defaultDriver);
 
 		$bindings = array();
+		$binding_str = '';
 		$db = self::db( $conn );
 
 		// Build the SQL query string from the request
 		$limit = self::limit( $request, $columns );
 		$order = self::order( $request, $columns );
 		$where = self::filter( $request, $columns, $bindings );
+		
+		if(!empty($bindings))
+		{
+			$binding_str = json_encode($bindings); // WTF? xD
+		}
 
 		$query = "SELECT ".implode(", ", self::pluck($columns, 'db'))."
 			 FROM $table
@@ -269,7 +275,7 @@ class SSP {
 			 $order
 			 $limit";
 			 
-		$query_md5 = md5($query);
+		$query_md5 = md5($query . $binding_str);
 		
 		if(!$Psr16Adapter->has($query_md5)){
 			$data = self::sql_exec($db, $bindings, $query);
@@ -285,7 +291,7 @@ class SSP {
 			 $where
 			 $group_by";
 			 
-		$query_md5 = md5($query);
+		$query_md5 = md5($query . $binding_str);
 		
 		if(!$Psr16Adapter->has($query_md5)){
 			$resFilterLength = self::sql_exec($db, $bindings, $query);
