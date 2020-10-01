@@ -301,7 +301,7 @@ class SSP {
 			$resFilterLength = $Psr16Adapter->get($query_md5);
 		}
 		
-		$recordsFiltered = $resFilterLength[0][0];
+		$recordsFiltered = count($resFilterLength);
 
 		// Total data set length
 		$query = "SELECT COUNT({$primaryKey})
@@ -318,7 +318,7 @@ class SSP {
 			$resTotalLength = $Psr16Adapter->get($query_md5);
 		}
 
-		$recordsTotal = $resTotalLength[0][0];
+		$recordsTotal = count($resTotalLength);
 
 		/*
 		 * Output
