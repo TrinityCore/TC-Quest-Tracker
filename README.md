@@ -23,7 +23,7 @@ then open the **TC-Quest-Tracker** folder, copy the file **config.php.dist**, re
 
 #### Screenshot
 
-![Screenshot](https://raw.githubusercontent.com/masterking32/TC-Quest-Tracker/master/screenshot.jpg)
+![Screenshot](https://raw.githubusercontent.com/TrinityCore/TC-Quest-Tracker/master/screenshot.jpg)
 
 ### License
 
