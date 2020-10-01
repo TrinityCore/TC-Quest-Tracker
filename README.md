@@ -19,6 +19,8 @@ git clone https://github.com/ShinDarth/TC-Quest-Tracker.git
 
 then open the **TC-Quest-Tracker** folder, copy the file **config.php.dist**, rename the copy to **config.php** and edit it properly (it's quite commented).
 
+Make sure to enable pdo_mysql extension too, i.e. edit php.ini and uncomment ```extension=pdo_mysql``` row.
+
 ---
 
 #### Screenshot
