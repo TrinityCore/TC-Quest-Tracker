@@ -1,3 +1,6 @@
+<?php
+require_once 'config.php';
+?>
 <!DOCTYPE html>
 <html lang="en">
 
@@ -12,7 +15,7 @@
 </head>
 
 <body>
-  <div class="mx-auto p-4 w-full mt-10">
+  <div class="mx-auto p-4 w-2xl max-w-full mt-10">
     <div class="bg-base-300 card shadow-xl">
       <div class="card-body text-center">
         <h2 class="card-title mx-auto text-center">
@@ -47,6 +50,24 @@
       </div>
     </div>
   </div>
+  <dialog id="quest_detail_modal" class="modal">
+    <div class="modal-box">
+      <h3 class="text-lg font-bold">Quest Detail</h3>
+      <!-- Loading -->
+      <div id="quest-detail-loading" class="text-center py-4">
+        <span class="loading loading-spinner loading-lg"></span>
+        <p class="mt-2">Loading quest details...</p>
+      </div>
+      <div id="quest-detail-content" class="hidden">
+        <!-- Quest details will be loaded here -->
+      </div>
+      <div class="modal-action">
+        <form method="dialog">
+          <button class="btn">Close</button>
+        </form>
+      </div>
+    </div>
+  </dialog>
   <script src="js/simple-datatables.js" type="text/javascript"></script>
 
   <script>
@@ -92,6 +113,39 @@
 
     function load_quest(quest_id) {
       // show modal with quest details
+      const modal = document.getElementById('quest_detail_modal');
+      const loading = document.getElementById('quest-detail-loading');
+      loading.classList.remove('hidden');
+      const content = document.getElementById('quest-detail-content');
+      if (typeof modal.showModal === "function") {
+        modal.showModal();
+        fetch(`/quest_info.php?id=${quest_id}&_t=${Date.now()}`)
+          .then(res => {
+            if (!res.ok) {
+              throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+            }
+            return res.json();
+          })
+          .then(data => {
+            loading.classList.add('hidden');
+            content.classList.remove('hidden');
+            content.innerHTML = `
+            <div class="divider my-4"></div>
+              <h4 class="text-xl font-bold mb-2">
+              <a href="<?php echo quest_url; ?>${data.quest_id}" target="_blank" class="text-primary">${data.quest_title}</a>
+               (ID: ${data.quest_id})
+               </h4>
+            `;
+          })
+          .catch(err => {
+            loading.classList.add('hidden');
+            content.classList.remove('hidden');
+            content.innerHTML = `<p class="text-red-500">Failed to load quest details: ${err.message}</p>`;
+          });
+
+      } else {
+        alert("The <dialog> API is not supported by this browser");
+      }
     }
 
     function renderTable(items) {
