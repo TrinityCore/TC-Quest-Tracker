@@ -40,15 +40,6 @@ try {
         'charset'  => 'utf8mb4',
     ]);
 
-    // $characters_db = DriverManager::getConnection([
-    //     'dbname'   => $mysql_characters,
-    //     'user'     => $mysql_username,
-    //     'password' => $mysql_password,
-    //     'host'     => $mysql_host,
-    //     'driver'   => 'pdo_mysql',
-    //     'charset'  => 'utf8mb4',
-    // ]);
-
     $cache_key = 'quest_search_' . md5($query . '_' . $page . '_' . $pageSize);
     $cachedData = $Psr16Adapter->get($cache_key);
     if ($cachedData) {

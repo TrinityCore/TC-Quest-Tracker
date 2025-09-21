@@ -112,11 +112,12 @@ require_once 'config.php';
     }
 
     function load_quest(quest_id) {
-      // show modal with quest details
       const modal = document.getElementById('quest_detail_modal');
       const loading = document.getElementById('quest-detail-loading');
       loading.classList.remove('hidden');
       const content = document.getElementById('quest-detail-content');
+      content.classList.add('hidden');
+      content.innerHTML = '';
       if (typeof modal.showModal === "function") {
         modal.showModal();
         fetch(`/quest_info.php?id=${quest_id}&_t=${Date.now()}`)
@@ -135,6 +136,21 @@ require_once 'config.php';
               <a href="<?php echo quest_url; ?>${data.quest_id}" target="_blank" class="text-primary">${data.quest_title}</a>
                (ID: ${data.quest_id})
                </h4>
+              <p><strong>Accepted:</strong> ${data.accept_count}</p>
+              <p><strong>Completed:</strong> ${data.complete_count}</p>
+              <p><strong>Abandoned:</strong> ${data.abandon_count}</p>
+              <p><strong>First Completed:</strong> ${data.first_completed ? data.first_completed : 'N/A'}</p>
+              <p><strong>Last Completed:</strong> ${data.last_completed ? data.last_completed : 'N/A'}</p>
+              <div class="divider my-4"></div>
+              <h4 class="text-lg font-bold mb-2">First Players to Complete</h4>
+              <ul class="list-disc list-inside mb-4">
+                ${data.first_players.length > 0 ? data.first_players.map(p => `<li>${p.player_name}</li>`).join('') : '<li class="text-gray-500">No players found</li>'}
+              </ul>
+              <h4 class="text-lg font-bold mb-2">Last Players to Complete</h4>
+              <ul class="list-disc list-inside mb-4">
+                ${data.last_players.length > 0 ? data.last_players.map(p => `<li>${p.player_name}</li>`).join('') : '<li class="text-gray-500">No players found</li>'}
+              </ul>
+
             `;
           })
           .catch(err => {
