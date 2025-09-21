@@ -23,7 +23,9 @@ Make sure to enable pdo_mysql extension too, i.e. edit php.ini and uncomment ```
 
 #### Screenshot
 
-![Screenshot](https://raw.githubusercontent.com/TrinityCore/TC-Quest-Tracker/master/screenshot.jpg)
+![Screenshot 1](https://raw.githubusercontent.com/masterking32/TC-Quest-Tracker/master/screenshot1.png)
+
+![Screenshot 2](https://raw.githubusercontent.com/masterking32/TC-Quest-Tracker/master/screenshot2.png)
 
 ### License
 
