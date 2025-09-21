@@ -1,0 +1,27 @@
+{
+  "name": "tc-quest-tracker",
+  "version": "2.0.0",
+  "description": "TC-Quest-Tracker",
+  "homepage": "https://github.com/masterking32/TC-Quest-Tracker#readme",
+  "bugs": {
+    "url": "https://github.com/masterking32/TC-Quest-Tracker/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/masterking32/TC-Quest-Tracker.git"
+  },
+  "license": "ISC",
+  "author": "masterking32",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@tailwindcss/cli": "^4.1.13",
+    "tailwindcss": "^4.1.13"
+  },
+  "devDependencies": {
+    "daisyui": "^5.1.13"
+  }
+}

@@ -1,5 +1,6 @@
 {
     "require": {
-        "phpfastcache/phpfastcache": "^8.0"
+        "doctrine/dbal": "^4.3",
+        "phpfastcache/phpfastcache": "^9.2"
     }
 }

@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+@plugin "daisyui" {
+  themes: night --default;
+}
+
+/* simple-datatables */
+.datatable-top {
+  @apply flex items-center justify-between p-5;
+}
+.datatable-dropdown {
+  @apply flex items-center text-center text-xs;
+}
+
+.datatable-selector {
+  @apply select w-auto select-xs;
+}
+
+.datatable-input {
+  @apply input input-xs w-auto;
+}
+
+.datatable-bottom {
+  @apply flex items-center justify-between p-5;
+}
+
+.datatable-bottom .datatable-pagination .datatable-pagination-list {
+  @apply flex items-center;
+}
+
+.datatable-pagination-list-item-link {
+  @apply btn btn-xs btn-info btn-soft mx-0.5 pt-1;
+}
+
+.datatable-active .datatable-pagination-list-item-link {
+  @apply btn btn-xs btn-ghost btn-primary mx-0.5 pt-1;
+}
+
+.datatable-table {
+  @apply overflow-x-auto text-center;
+}
+
+.datatable-info {
+  @apply text-xs text-base-content text-center;
+}

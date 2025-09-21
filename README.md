@@ -1,31 +1,57 @@
 TC-Quest-Tracker
 ================
 
-Quest Tracker is a tool for [TrinityCore](https://github.com/TrinityCore/TrinityCore) that tracks most abandoned quests [(see details)](https://github.com/TrinityCore/TrinityCore/pull/13353) and this is a web interface to show them.
+Quest Tracker is a tool for [TrinityCore](https://github.com/TrinityCore/TrinityCore) that tracks most abandoned quests ([see details](https://github.com/TrinityCore/TrinityCore/pull/13353)). This repository provides a web interface to display tracked quests.
 
-You need to enable your Quest Tracker in your **worldserver.conf** file by setting:
+## Prerequisites
 
-```
+- A web server with PHP 8.0+ and MySQL/MariaDB
+- [Composer](https://getcomposer.org/) and [Git](https://git-scm.com/) installed
+
+## Enabling Quest Tracker
+
+Enable the Quest Tracker in your **worldserver.conf** file by setting:
+
+```ini
 Quests.EnableQuestTracker = 1
 ```
 
-To install the web interface, go in your web server folder and type:
+## Installation
 
-```
-git clone https://github.com/Trinitycore/TC-Quest-Tracker.git
-```
+1. Clone this repository:
 
-then open the **TC-Quest-Tracker** folder, copy the file **config.php.dist**, rename the copy to **config.php** and edit it properly (it's quite commented).
+    ```bash
+    git clone https://github.com/masterking32/TC-Quest-Tracker.git
+    ```
 
-Make sure to enable pdo_mysql extension too, i.e. edit php.ini and uncomment ```extension=pdo_mysql``` row.
+2. In your web server folder, run:
+
+    ```bash
+    composer install
+    ```
+
+3. Copy and edit **config.php.dist** to set your database connection parameters. Rename it to **config.php**.
+
+4. Ensure the `pdo_mysql` extension is enabled in your `php.ini` file by uncommenting:
+
+    ```
+    extension=pdo_mysql
+    ```
+
+5. Open your web browser and navigate to the folder where you installed the tracker (e.g., http://localhost/).
 
 ---
 
-#### Screenshot
+## Screenshots
 
-![Screenshot](https://raw.githubusercontent.com/TrinityCore/TC-Quest-Tracker/master/screenshot.jpg)
+![Screenshot 1](https://raw.githubusercontent.com/masterking32/TC-Quest-Tracker/refs/heads/master/screenshot1.png)
+![Screenshot 2](https://raw.githubusercontent.com/masterking32/TC-Quest-Tracker/refs/heads/master/screenshot2.png)
 
-### License
+## License
 
-The TrinityCore Quest Tracker is open-sourced software licensed under the [GNU AGPL license](https://github.com/ShinDarth/TC-Quest-Tracker/blob/master/LICENSE).
+TC-Quest-Tracker is open-source software licensed under the [GNU AGPL license](https://github.com/ShinDarth/TC-Quest-Tracker/blob/master/LICENSE).
+
+## Credits
+
+- [masterking32](https://github.com/masterking32)
 
