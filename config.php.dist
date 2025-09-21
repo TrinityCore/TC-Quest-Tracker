@@ -8,6 +8,6 @@ $mysql_world = 'world';
 $mysql_characters = 'characters';
 
 # Quest URL
-define('quest_url', 'https://tcubuntu.northeurope.cloudapp.azure.com/aowow/?quest=');
+define('quest_url', 'https://wotlkdb.com/?quest=');
 # Query cache time (Secs)
 define('cache_time', 3600); // 1 hour

@@ -20,18 +20,26 @@
           TrinityCore Quest Tracker (Reborn)
         </h2>
         <div>
+          <input type="text" id="search" class="mt-5 input input-bordered w-full mb-4 max-w-md " placeholder="Search quests..." />
+          <div id="loading" class="hidden text-center py-4">
+            <span class="loading loading-spinner loading-lg"></span>
+            <p class="mt-2">Loading quests...</p>
+          </div>
+          <div id="error-message" class="hidden alert alert-error mb-4">
+            <span id="error-text">An error occurred while loading data.</span>
+          </div>
           <table class="table w-full" id="data-table">
             <thead>
-              <th class=" text-center">Quest ID</th>
               <th class="text-center">Quest Name</th>
-              <th class="text-center">Abandoned</th>
-              <th class="text-center">Completed</th>
-              <th class="text-center">Last Abandoned</th>
-              <th class="text-center">Last Completed</th>
             </thead>
             <tbody>
             </tbody>
           </table>
+        </div>
+        <div class="flex justify-between items-center mt-4">
+          <button id="prev" class="btn btn-primary">Previous</button>
+          <span id="pageInfo" class="mx-2"></span>
+          <button id="next" class="btn btn-primary">Next</button>
         </div>
         <div>
           Created by <a href="https://github.com/MasterkinG32" class="text-primary" target="_blank">MasterkinG32</a>
@@ -40,21 +48,181 @@
     </div>
   </div>
   <script src="js/simple-datatables.js" type="text/javascript"></script>
+
   <script>
-    document.addEventListener("DOMContentLoaded", function() {
+    const PAGE_SIZE = 10;
+    const ENDPOINT = '/quest_api.php';
 
-      const table_document = document.getElementById("data-table");
+    const searchEl = document.getElementById('search');
+    const prevBtn = document.getElementById('prev');
+    const nextBtn = document.getElementById('next');
+    const pageInfo = document.getElementById('pageInfo');
+    const tableEl = document.getElementById('data-table');
+    const loadingEl = document.getElementById('loading');
+    const errorEl = document.getElementById('error-message');
+    const errorText = document.getElementById('error-text');
 
-      if (table_document) {
-        new simpleDatatables.DataTable(table_document, {
-          searchable: true,
-          sortable: true,
-          perPageSelect: [10, 15, 20, 25, 50, 100],
-          perPage: 20,
-          classes: {},
-        });
+    let page = 1;
+    let total = 0;
+    let dt = null;
+
+    function debounce(fn, delay = 300) {
+      let t = null;
+      return (...args) => {
+        clearTimeout(t);
+        t = setTimeout(() => fn(...args), delay);
+      };
+    }
+
+    async function fetchPage(query, pageNum) {
+      const url = new URL(ENDPOINT, window.location.origin);
+      url.searchParams.set('query', query || '');
+      url.searchParams.set('page', String(pageNum));
+      url.searchParams.set('pageSize', String(PAGE_SIZE));
+
+      url.searchParams.set('_t', Date.now());
+
+      const res = await fetch(url);
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.error || `HTTP ${res.status}: ${res.statusText}`);
+      }
+      return res.json();
+    }
+
+    function load_quest(quest_id) {
+      // show modal with quest details
+    }
+
+    function renderTable(items) {
+      hideError();
+      if (dt) {
+        try {
+          dt.destroy();
+        } catch (e) {}
+        dt = null;
+      }
+
+      tableEl.innerHTML = `
+        <thead>
+          <tr>
+            <th class="text-center">Quest Name</th>
+          </tr>
+        </thead>
+        <tbody>
+        </tbody>
+      `;
+
+      if (items.quests && items.quests.length > 0) {
+        const tbody = tableEl.querySelector('tbody');
+        const questRows = items.quests.map(q =>
+          `<tr><td class="text-center"><button onclick="load_quest('${q.quest_id}')">${q.quest_title}</button></td></tr>`
+        ).join('');
+
+        tbody.innerHTML = questRows;
+      } else {
+        const tbody = tableEl.querySelector('tbody');
+        tbody.innerHTML = '<tr><td class="text-center text-gray-500">No quests found</td></tr>';
+      }
+
+      total = items.total || 0;
+      updatePagination();
+    }
+
+    function updatePagination() {
+      const totalPages = Math.ceil(total / PAGE_SIZE);
+      pageInfo.textContent = `Page ${page} of ${totalPages} (${total} quests)`;
+
+      prevBtn.disabled = page <= 1;
+      nextBtn.disabled = page >= totalPages;
+    }
+
+    function showLoading() {
+      loadingEl.classList.remove('hidden');
+      errorEl.classList.add('hidden');
+      tableEl.style.opacity = '0.5';
+    }
+
+    function hideLoading() {
+      loadingEl.classList.add('hidden');
+      tableEl.style.opacity = '1';
+    }
+
+    function showError(message) {
+      hideLoading();
+      errorText.textContent = message;
+      errorEl.classList.remove('hidden');
+    }
+
+    function hideError() {
+      errorEl.classList.add('hidden');
+    }
+
+    async function loadPage(pageNum, query = '') {
+      showLoading();
+      hideError();
+
+      try {
+        const data = await fetchPage(query, pageNum);
+
+        page = pageNum;
+        renderTable(data);
+        hideLoading();
+      } catch (e) {
+        showError(`Failed to load quests: ${e.message}`);
+
+        if (dt) {
+          try {
+            dt.destroy();
+          } catch (destroyError) {
+            console.log('Error destroying DataTable on error:', destroyError);
+          }
+          dt = null;
+        }
+
+        tableEl.innerHTML = `
+          <thead>
+            <tr>
+              <th class="text-center">Quest Name</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td class="text-center text-gray-500">No data available</td></tr>
+          </tbody>
+        `;
+      }
+    }
+
+    const runSearch = debounce(async (q) => {
+      page = 1;
+      await loadPage(page, q);
+    }, 350);
+
+    prevBtn.addEventListener('click', () => {
+      if (page > 1) {
+        loadPage(page - 1, searchEl.value);
       }
     });
+
+    nextBtn.addEventListener('click', () => {
+      const totalPages = Math.ceil(total / PAGE_SIZE);
+      if (page < totalPages) {
+        loadPage(page + 1, searchEl.value);
+      }
+    });
+
+    searchEl.addEventListener('input', (e) => runSearch(e.target.value));
+    document.addEventListener('DOMContentLoaded', function() {
+      setTimeout(() => {
+        runSearch('');
+      }, 100);
+    });
+
+    if (document.readyState === 'loading') {} else {
+      setTimeout(() => {
+        runSearch('');
+      }, 100);
+    }
   </script>
 </body>
 
