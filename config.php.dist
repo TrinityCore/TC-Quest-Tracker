@@ -7,6 +7,9 @@ $mysql_password = 'root';
 $mysql_world = 'world';
 $mysql_characters = 'characters';
 
+# Website domain
+define('domain', 'http://localhost');
+
 # Quest URL
 define('quest_url', 'https://wotlkdb.com/?quest=');
 # Query cache time (Secs)
