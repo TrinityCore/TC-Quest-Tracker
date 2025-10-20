@@ -25,6 +25,7 @@ if ( is_file( $file ) ) {
 require('./vendor/autoload.php');
 use Phpfastcache\Helper\Psr16Adapter;
 
+define('cache_time', 3600); // Example: 3600 seconds = 1 hour
 
 class SSP {
 	/**
