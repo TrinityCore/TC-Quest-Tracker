@@ -2,127 +2,107 @@
 
 /**
  *
- * This file is part of phpFastCache.
+ * This file is part of Phpfastcache.
  *
  * @license MIT License (MIT)
  *
- * For full copyright and license information, please see the docs/CREDITS.txt file.
+ * For full copyright and license information, please see the docs/CREDITS.txt and LICENCE files.
  *
- * @author Khoa Bui (khoaofgod)  <khoaofgod@gmail.com> https://www.phpfastcache.com
  * @author Georges.L (Geolim4)  <contact@geolim4.com>
- *
+ * @author Contributors  https://github.com/PHPSocialNetwork/phpfastcache/graphs/contributors
  */
+
 declare(strict_types=1);
 
 namespace Phpfastcache\Core\Pool;
 
-use Phpfastcache\Entities\DriverIO;
-use Phpfastcache\Exceptions\{PhpfastcacheLogicException};
+use Phpfastcache\Core\Item\ExtendedCacheItemInterface;
+use Phpfastcache\Event\Event;
+use Phpfastcache\Event\EventReferenceParameter;
+use Phpfastcache\Exceptions\PhpfastcacheCoreException;
+use Phpfastcache\Exceptions\PhpfastcacheDriverException;
+use Phpfastcache\Exceptions\PhpfastcacheInvalidArgumentException;
+use Phpfastcache\Exceptions\PhpfastcacheLogicException;
 use Psr\Cache\CacheItemInterface;
 
-
-/**
- * Trait ExtendedCacheItemPoolTrait
- * @package Phpfastcache\Core\Pool
- */
 trait ExtendedCacheItemPoolTrait
 {
     use CacheItemPoolTrait;
-    use AbstractDriverPoolTrait;
+    use AggregatablePoolTrait;
 
     /**
-     * @var DriverIO
+     * @inheritDoc
+     * @param string $pattern
+     * @return array<string, mixed>
      */
-    protected $IO;
-
-    /**
-     * @inheritdoc
-     */
-    public function getItemsAsJsonString(array $keys = [], int $option = 0, int $depth = 512): string
+    public function getAllItems(string $pattern = ''): iterable
     {
-        $callback = static function (CacheItemInterface $item) {
-            return $item->get();
-        };
-        return \json_encode(\array_map($callback, \array_values($this->getItems($keys))), $option, $depth);
+        $driverReadAllKeysCallback = fn (string $pattern): iterable => $this->driverReadAllKeys($pattern);
+
+        /**
+         * This event allow you to customize the callback and wrap it to an invoker
+         * like SebastianBergmann\Invoke\Invoke, so you can set up custom timeouts.
+         */
+        $this->eventManager->dispatch(Event::CACHE_GET_ALL_ITEMS, $this, new EventReferenceParameter($driverReadAllKeysCallback));
+        $keys = $driverReadAllKeysCallback($pattern);
+
+        if (count($keys) > 0) {
+            return $this->getItems($keys instanceof \Traversable ? iterator_to_array($keys) : $keys);
+        }
+
+        return [];
     }
 
     /**
-     * @inheritdoc
+     * @inheritDoc
+     * @throws PhpfastcacheCoreException
+     * @throws PhpfastcacheDriverException
+     * @throws PhpfastcacheInvalidArgumentException
+     * @throws PhpfastcacheLogicException
      */
-    public function detachAllItems()
+    public function getItemsAsJsonString(array $keys = [], int $options = \JSON_THROW_ON_ERROR, int $depth = 512): string
+    {
+        return \json_encode(
+            \array_map(
+                static fn(CacheItemInterface $item) => $item->get(),
+                \array_values($this->getItems($keys))
+            ),
+            $options,
+            $depth
+        );
+    }
+
+    public function detachAllItems(): static
     {
         foreach ($this->itemInstances as $item) {
             $this->detachItem($item);
         }
+
+        return $this;
     }
 
-    /**
-     * @param CacheItemInterface $item
-     * @return void
-     */
-    public function detachItem(CacheItemInterface $item)
+    public function detachItem(CacheItemInterface $item): static
     {
         if (isset($this->itemInstances[$item->getKey()])) {
             $this->deregisterItem($item->getKey());
         }
+
+        return $this;
     }
 
     /**
-     * @param string $item
-     * @internal This method de-register an item from $this->itemInstances
+     * @param ExtendedCacheItemInterface ...$items
+     * @return bool
+     * @throws PhpfastcacheCoreException
+     * @throws PhpfastcacheDriverException
+     * @throws PhpfastcacheInvalidArgumentException
+     * @throws PhpfastcacheLogicException
      */
-    protected function deregisterItem(string $item)
+    public function saveMultiple(ExtendedCacheItemInterface ...$items): bool
     {
-        unset($this->itemInstances[$item]);
+        $this->eventManager->dispatch(Event::CACHE_SAVE_MULTIPLE_ITEMS, $this, new EventReferenceParameter($items));
 
-        if (\gc_enabled()) {
-            \gc_collect_cycles();
-        }
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function attachItem(CacheItemInterface $item)
-    {
-        if (isset($this->itemInstances[$item->getKey()]) && \spl_object_hash($item) !== \spl_object_hash($this->itemInstances[$item->getKey()])) {
-            throw new PhpfastcacheLogicException(
-                'The item already exists and cannot be overwritten because the Spl object hash mismatches ! You probably tried to re-attach a detached item which has been already retrieved from cache.'
-            );
-        }
-
-        $this->itemInstances[$item->getKey()] = $item;
-    }
-
-    /**
-     * Returns true if the item exists, is attached and the Spl Hash matches
-     * Returns false if the item exists, is attached and the Spl Hash mismatches
-     * Returns null if the item does not exists
-     *
-     * @param CacheItemInterface $item
-     * @return bool|null
-     */
-    public function isAttached(CacheItemInterface $item)
-    {
-        if (isset($this->itemInstances[$item->getKey()])) {
-            return \spl_object_hash($item) === \spl_object_hash($this->itemInstances[$item->getKey()]);
-        }
-        return null;
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function saveMultiple(...$items): bool
-    {
-        if (isset($items[0]) && \is_array($items[0])) {
-            foreach ($items[0] as $item) {
-                $this->save($item);
-            }
-            return true;
-        }
-
-        if (\is_array($items)) {
+        if (\count($items)) {
             foreach ($items as $item) {
                 $this->save($item);
             }
@@ -132,18 +112,24 @@ trait ExtendedCacheItemPoolTrait
     }
 
     /**
-     * @return DriverIO
-     */
-    public function getIO(): DriverIO
-    {
-        return $this->IO;
-    }
-
-    /**
      * @return string
      */
     public function getHelp(): string
     {
         return '';
+    }
+
+    /**
+     * @throws PhpfastcacheInvalidArgumentException
+     */
+    public function throwUnsupportedDriverReadAllPattern(string $linkReference = ''): void
+    {
+        throw new PhpfastcacheInvalidArgumentException(
+            sprintf(
+                '%s does not support a pattern argument.%s',
+                $this->getDriverName(),
+                $linkReference ? " See $linkReference" : ''
+            )
+        );
     }
 }

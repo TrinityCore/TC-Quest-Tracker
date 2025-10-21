@@ -1,7 +1,11 @@
 .container {
-  max-width: 900px;
+  max-width: 1000px;
 }
 
 .hover-pointer {
   cursor: pointer;
+}
+
+a:link{
+  text-decoration: none;
 }

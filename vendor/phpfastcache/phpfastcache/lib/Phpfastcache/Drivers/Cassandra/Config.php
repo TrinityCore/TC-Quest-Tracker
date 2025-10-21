@@ -1,15 +1,15 @@
 <?php
+
 /**
  *
- * This file is part of phpFastCache.
+ * This file is part of Phpfastcache.
  *
  * @license MIT License (MIT)
  *
- * For full copyright and license information, please see the docs/CREDITS.txt file.
+ * For full copyright and license information, please see the docs/CREDITS.txt and LICENCE files.
  *
- * @author Khoa Bui (khoaofgod)  <khoaofgod@gmail.com> https://www.phpfastcache.com
  * @author Georges.L (Geolim4)  <contact@geolim4.com>
- *
+ * @author Contributors  https://github.com/PHPSocialNetwork/phpfastcache/graphs/contributors
  */
 
 declare(strict_types=1);
@@ -17,41 +17,26 @@ declare(strict_types=1);
 namespace Phpfastcache\Drivers\Cassandra;
 
 use Phpfastcache\Config\ConfigurationOption;
+use Phpfastcache\Exceptions\PhpfastcacheLogicException;
 
 class Config extends ConfigurationOption
 {
-    /**
-     * @var string
-     */
-    protected $host = '127.0.0.1';
-    /**
-     * @var int
-     */
-    protected $port = 9042;
-    /**
-     * @var int
-     */
-    protected $timeout = 2;
-    /**
-     * @var string
-     */
-    protected $username = '';
-    /**
-     * @var string
-     */
-    protected $password = '';
-    /**
-     * @var bool
-     */
-    protected $sslEnabled = false;
-    /**
-     * @var bool
-     */
-    protected $sslVerify = false;
+    protected string $host = '127.0.0.1';
 
-    /**
-     * @return string
-     */
+    protected int $port = 9042;
+
+    protected int $timeout = 2;
+
+    protected string $username = '';
+
+    protected string $password = '';
+
+    protected bool $sslEnabled = false;
+
+    protected bool $sslVerify = false;
+
+    protected bool $useLegacyExecutionOptions = false;
+
     public function getHost(): string
     {
         return $this->host;
@@ -59,12 +44,11 @@ class Config extends ConfigurationOption
 
     /**
      * @param string $host
-     * @return self
+     * @throws PhpfastcacheLogicException
      */
-    public function setHost(string $host): self
+    public function setHost(string $host): static
     {
-        $this->host = $host;
-        return $this;
+        return $this->setProperty('host', $host);
     }
 
     /**
@@ -77,12 +61,11 @@ class Config extends ConfigurationOption
 
     /**
      * @param int $port
-     * @return self
+     * @throws PhpfastcacheLogicException
      */
-    public function setPort(int $port): self
+    public function setPort(int $port): static
     {
-        $this->port = $port;
-        return $this;
+        return $this->setProperty('port', $port);
     }
 
     /**
@@ -95,12 +78,11 @@ class Config extends ConfigurationOption
 
     /**
      * @param int $timeout
-     * @return self
+     * @throws PhpfastcacheLogicException
      */
-    public function setTimeout(int $timeout): self
+    public function setTimeout(int $timeout): static
     {
-        $this->timeout = $timeout;
-        return $this;
+        return $this->setProperty('timeout', $timeout);
     }
 
     /**
@@ -113,12 +95,11 @@ class Config extends ConfigurationOption
 
     /**
      * @param string $username
-     * @return self
+     * @throws PhpfastcacheLogicException
      */
-    public function setUsername(string $username): self
+    public function setUsername(string $username): static
     {
-        $this->username = $username;
-        return $this;
+        return $this->setProperty('username', $username);
     }
 
     /**
@@ -131,12 +112,11 @@ class Config extends ConfigurationOption
 
     /**
      * @param string $password
-     * @return self
+     * @throws PhpfastcacheLogicException
      */
-    public function setPassword(string $password): self
+    public function setPassword(string $password): static
     {
-        $this->password = $password;
-        return $this;
+        return $this->setProperty('password', $password);
     }
 
     /**
@@ -149,12 +129,11 @@ class Config extends ConfigurationOption
 
     /**
      * @param bool $sslEnabled
-     * @return self
+     * @throws PhpfastcacheLogicException
      */
-    public function setSslEnabled(bool $sslEnabled): self
+    public function setSslEnabled(bool $sslEnabled): static
     {
-        $this->sslEnabled = $sslEnabled;
-        return $this;
+        return $this->setProperty('sslEnabled', $sslEnabled);
     }
 
     /**
@@ -167,11 +146,27 @@ class Config extends ConfigurationOption
 
     /**
      * @param bool $sslVerify
-     * @return self
+     * @throws PhpfastcacheLogicException
      */
-    public function setSslVerify(bool $sslVerify): self
+    public function setSslVerify(bool $sslVerify): static
     {
-        $this->sslVerify = $sslVerify;
-        return $this;
+        return $this->setProperty('sslVerify', $sslVerify);
+    }
+
+    /**
+     * @return bool
+     */
+    public function isUseLegacyExecutionOptions(): bool
+    {
+        return $this->useLegacyExecutionOptions;
+    }
+
+    /**
+     * @param bool $useLegacyExecutionOptions
+     * @throws PhpfastcacheLogicException
+     */
+    public function setUseLegacyExecutionOptions(bool $useLegacyExecutionOptions): static
+    {
+        return $this->setProperty('useLegacyExecutionOptions', $useLegacyExecutionOptions);
     }
 }

@@ -2,37 +2,36 @@
 
 /**
  *
- * This file is part of phpFastCache.
+ * This file is part of Phpfastcache.
  *
  * @license MIT License (MIT)
  *
- * For full copyright and license information, please see the docs/CREDITS.txt file.
+ * For full copyright and license information, please see the docs/CREDITS.txt and LICENCE files.
  *
- * @author Khoa Bui (khoaofgod)  <khoaofgod@gmail.com> https://www.phpfastcache.com
  * @author Georges.L (Geolim4)  <contact@geolim4.com>
- *
+ * @author Contributors  https://github.com/PHPSocialNetwork/phpfastcache/graphs/contributors
  */
+
 declare(strict_types=1);
 
 namespace Phpfastcache\Drivers\Wincache;
 
 use DateTime;
 use Phpfastcache\Cluster\AggregatablePoolInterface;
-use Phpfastcache\Core\Pool\{DriverBaseTrait, ExtendedCacheItemPoolInterface};
+use Phpfastcache\Core\Pool\ExtendedCacheItemPoolInterface;
+use Phpfastcache\Core\Pool\TaggableCacheItemPoolTrait;
+use Phpfastcache\Core\Item\ExtendedCacheItemInterface;
 use Phpfastcache\Entities\DriverStatistic;
-use Phpfastcache\Exceptions\{PhpfastcacheInvalidArgumentException};
-use Psr\Cache\CacheItemInterface;
-
+use Phpfastcache\Exceptions\PhpfastcacheInvalidArgumentException;
+use Phpfastcache\Exceptions\PhpfastcacheLogicException;
 
 /**
- * Class Driver
- * @package phpFastCache\Drivers
- * @property Config $config Config object
- * @method Config getConfig() Return the config object
+ * @deprecated will be removed as of v10 due to the lack of updates to PHP8 as officially stated by PHP: https://www.php.net/manual/en/install.windows.recommended.php
+ * @method Config getConfig()
  */
-class Driver implements ExtendedCacheItemPoolInterface, AggregatablePoolInterface
+class Driver implements AggregatablePoolInterface
 {
-    use DriverBaseTrait;
+    use TaggableCacheItemPoolTrait;
 
     /**
      * @return bool
@@ -40,6 +39,13 @@ class Driver implements ExtendedCacheItemPoolInterface, AggregatablePoolInterfac
     public function driverCheck(): bool
     {
         return extension_loaded('wincache') && function_exists('wincache_ucache_set');
+    }
+
+    public function getHelp(): string
+    {
+        return <<<HELP
+Wincache PECL extension is not maintained anymore and has been superseded. Check sourceforge for more informations: https://sourceforge.net/projects/wincache/'
+HELP;
     }
 
     /**
@@ -67,14 +73,14 @@ class Driver implements ExtendedCacheItemPoolInterface, AggregatablePoolInterfac
     }
 
     /**
-     * @param CacheItemInterface $item
-     * @return null|array
+     * @param ExtendedCacheItemInterface $item
+     * @return ?array<string, mixed>
      */
-    protected function driverRead(CacheItemInterface $item)
+    protected function driverRead(ExtendedCacheItemInterface $item): ?array
     {
         $val = wincache_ucache_get($item->getKey(), $suc);
 
-        if ($suc === false) {
+        if ($suc === false || empty($val)) {
             return null;
         }
 
@@ -82,43 +88,26 @@ class Driver implements ExtendedCacheItemPoolInterface, AggregatablePoolInterfac
     }
 
     /**
-     * @param CacheItemInterface $item
+     * @param ExtendedCacheItemInterface $item
      * @return mixed
      * @throws PhpfastcacheInvalidArgumentException
+     * @throws PhpfastcacheLogicException
      */
-    protected function driverWrite(CacheItemInterface $item): bool
+    protected function driverWrite(ExtendedCacheItemInterface $item): bool
     {
-        /**
-         * Check for Cross-Driver type confusion
-         */
-        if ($item instanceof Item) {
-            return wincache_ucache_set($item->getKey(), $this->driverPreWrap($item), $item->getTtl());
-        }
 
-        throw new PhpfastcacheInvalidArgumentException('Cross-Driver type confusion detected');
+        return wincache_ucache_set($item->getKey(), $this->driverPreWrap($item), $item->getTtl());
     }
 
     /**
-     * @param CacheItemInterface $item
+     * @param string $key
+     * @param string $encodedKey
      * @return bool
-     * @throws PhpfastcacheInvalidArgumentException
      */
-    protected function driverDelete(CacheItemInterface $item): bool
+    protected function driverDelete(string $key, string $encodedKey): bool
     {
-        /**
-         * Check for Cross-Driver type confusion
-         */
-        if ($item instanceof Item) {
-            return wincache_ucache_delete($item->getKey());
-        }
-        throw new PhpfastcacheInvalidArgumentException('Cross-Driver type confusion detected');
+        return wincache_ucache_delete($key);
     }
-
-    /********************
-     *
-     * PSR-6 Extended Methods
-     *
-     *******************/
 
     /**
      * @return bool
