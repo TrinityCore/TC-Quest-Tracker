@@ -484,13 +484,16 @@ class SSP {
 		}
 
 		$stmt = $db->prepare( $sql );
-		//echo $sql;
 
-		// Bind parameters
+		// Bind parameters (only those actually present in the SQL)
 		if ( is_array( $bindings ) ) {
 			for ( $i=0, $ien=count($bindings) ; $i<$ien ; $i++ ) {
 				$binding = $bindings[$i];
-				$stmt->bindValue( $binding['key'], $binding['val'], $binding['type'] );
+
+				// Only bind if the placeholder exists in the SQL we're about to execute
+				if ( strpos($sql, $binding['key']) !== false ) {
+					$stmt->bindValue( $binding['key'], $binding['val'], $binding['type'] );
+				}
 			}
 		}
 
