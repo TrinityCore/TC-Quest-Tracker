@@ -29,11 +29,15 @@ $sql_details = array(
     'db'   => $mysql_world,
     'host' => $mysql_host
 );
- 
- 
+
+$extra_where = '';
+if (isset($_GET['abandoned_only']) && $_GET['abandoned_only'] == 1) {
+    $extra_where = 'COUNT(t1.quest_abandon_time) > 0 AND COUNT(t1.quest_complete_time) = 0';
+}
+
 require( 'ssp.class.php' );
- 
+
 echo json_encode(
-    SSP::simple( $_GET, $sql_details, $table, $primaryKey, $columns, $group_by)
+    SSP::simple( $_GET, $sql_details, $table, $primaryKey, $columns, $group_by, $extra_where)
 );
 

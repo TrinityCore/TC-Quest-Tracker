@@ -13,11 +13,17 @@
     <link rel="stylesheet" href="css/style.css">
   </head>
   <body>
-    <div class="container py-5">
+    <div class="container py-4">
       <p class="h2 text-center"><img src="img/trinitycore.png" alt="TrinityCore">TrinityCore Quest Tracker</p>
-      <div class="form-check form-switch ms-4">
-        <input class="form-check-input" type="checkbox" id="darkModeToggle">
-        <label class="form-check-label" for="darkModeToggle">Dark Mode</label>
+      <div class="d-flex justify-content-between align-items-center mt-4">
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" id="abandonedOnlyToggle">
+          <label class="form-check-label" for="abandonedOnlyToggle">Show only abandoned quests (never completed)</label>
+        </div>
+        <div class="form-check form-switch">
+          <input class="form-check-input" type="checkbox" id="darkModeToggle">
+          <label class="form-check-label" for="darkModeToggle">Dark Mode</label>
+        </div>
       </div>
       <hr>
       <br>
@@ -47,48 +53,30 @@
     <script src="https://cdn.datatables.net/2.3.4/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.8/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://aowow.trinitycore.info/static/widgets/power.js"></script><script>var aowow_tooltips = { "colorlinks": true, "iconizelinks": true, "renamelinks": true }</script>
+    <script src="js/dark-mode.js"></script>
     <script>
+    let dataTable;
+
 	  $(document).ready(function() {
-		$('#table1').DataTable( {
+		  dataTable = $('#table1').DataTable( {
 			"processing": true,
 			"serverSide": true,
-			"ajax": "./server_processing.php",
+			"ajax": {
+                url: "./server_processing.php",
+                type: "GET",
+                data: function (d) {
+                    d.abandoned_only = $('#abandonedOnlyToggle').is(':checked') ? 1 : 0;
+                }
+            },
 			"columnDefs": [
                 { className: "text-center", targets: [ 0, 1, 2, 3, 4, 5 ] }
             ]
 		} );
+
+        $('#abandonedOnlyToggle').on('change', function() {
+            dataTable.ajax.reload();
+        });
 	} );
-    </script>
-    <script>
-    // Dark Mode
-    const toggle = $('#darkModeToggle');
-    const body = $('body');
-    const storageKey = 'themePreference';
-    const darkTheme = 'dark';
-    const lightTheme = 'light';
-
-    function applyTheme(theme) {
-        if (theme === darkTheme) {
-            body.attr('data-bs-theme', darkTheme);
-            toggle.prop('checked', true);
-        } else {
-            body.attr('data-bs-theme', lightTheme);
-            toggle.prop('checked', false);
-        }
-    }
-
-    let currentTheme = localStorage.getItem(storageKey) || lightTheme;
-    applyTheme(currentTheme);
-
-    toggle.on('change', function() {
-        if (toggle.is(':checked')) {
-            applyTheme(darkTheme);
-            localStorage.setItem(storageKey, darkTheme);
-        } else {
-            applyTheme(lightTheme);
-            localStorage.setItem(storageKey, lightTheme);
-        }
-    });
     </script>
   </body>
 </html>
