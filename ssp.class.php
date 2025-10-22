@@ -246,9 +246,11 @@ class SSP {
 	 *  @param  string $table SQL table to query
 	 *  @param  string $primaryKey Primary key of the table
 	 *  @param  array $columns Column information array
+	 *  @param  string $group_by GROUP BY clause for the SQL query
+	 *  @param  string $whereExtra Extra WHERE/HAVING clause for all queries
 	 *  @return array          Server-side processing response array
 	 */
-	static function simple ( $request, $conn, $table, $primaryKey, $columns, $group_by)
+	static function simple ( $request, $conn, $table, $primaryKey, $columns, $group_by, $whereExtra = null)
 	{
 		$defaultDriver = 'Files';
 		$Psr16Adapter = new Psr16Adapter($defaultDriver);
@@ -261,7 +263,12 @@ class SSP {
 		$limit = self::limit( $request, $columns );
 		$order = self::order( $request, $columns );
 		$where = self::filter( $request, $columns, $bindings );
-		
+
+		$having = '';
+		if ( $whereExtra ) {
+			$having = 'HAVING ' . $whereExtra;
+		}
+
 		if(!empty($bindings))
 		{
 			$binding_str = json_encode($bindings); // WTF? xD
@@ -271,11 +278,12 @@ class SSP {
 			 FROM $table
 			 $where
 			 $group_by
+			 $having
 			 $order
 			 $limit";
-			 
+
 		$query_md5 = md5($query . $binding_str);
-		
+
 		if(!$Psr16Adapter->has($query_md5)){
 			$data = self::sql_exec($db, $bindings, $query);
 			$Psr16Adapter->set($query_md5, $data, cache_time);// 1 hour
@@ -283,15 +291,16 @@ class SSP {
 			// Getter action
 			$data = $Psr16Adapter->get($query_md5);
 		}
-		
+
 		// Data set length after filtering
 		$query = "SELECT COUNT({$primaryKey})
 			 FROM   $table
 			 $where
-			 $group_by";
-			 
+			 $group_by
+			 $having";
+
 		$query_md5 = md5($query . $binding_str);
-		
+
 		if(!$Psr16Adapter->has($query_md5)){
 			$resFilterLength = self::sql_exec($db, $bindings, $query);
 			$Psr16Adapter->set($query_md5, $resFilterLength, cache_time);// 1 hour
@@ -299,14 +308,14 @@ class SSP {
 			// Getter action
 			$resFilterLength = $Psr16Adapter->get($query_md5);
 		}
-		
+
 		$recordsFiltered = count($resFilterLength);
 
 		// Total data set length
 		$query = "SELECT COUNT({$primaryKey})
 			 FROM   $table
 			 $group_by";
-			 
+
 		$query_md5 = md5($query);
 		
 		if(!$Psr16Adapter->has($query_md5)){
