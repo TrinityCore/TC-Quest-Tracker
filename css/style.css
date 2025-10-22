@@ -9,3 +9,19 @@
 a:link{
   text-decoration: none;
 }
+
+[data-bs-theme="dark"] body {
+    background-color: #212529;
+    color: #f8f9fa;
+}
+
+[data-bs-theme="dark"] hr {
+    border-top: 1px solid rgba(248, 249, 250, .2); 
+}
+
+[data-bs-theme="dark"] a {
+    color: #0d6efd; 
+}
+[data-bs-theme="dark"] a:hover {
+    color: #4da5ff;
+}
